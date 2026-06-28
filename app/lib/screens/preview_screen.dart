@@ -58,9 +58,12 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Pré-visualização')),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
+      body: Column(
         children: [
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+              children: [
           if (r.thumbnail != null)
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
@@ -102,17 +105,38 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
               dense: true,
             ),
           ),
-          const SizedBox(height: 20),
-          if (downloading) ...[
-            LinearProgressIndicator(value: _progress),
-            const SizedBox(height: 8),
-            Center(child: Text('${((_progress ?? 0) * 100).toStringAsFixed(0)}%')),
-            const SizedBox(height: 12),
-          ],
-          FilledButton.icon(
-            onPressed: downloading ? null : _download,
-            icon: const Icon(Icons.download),
-            label: Text(downloading ? 'Baixando...' : 'Baixar na galeria'),
+              ],
+            ),
+          ),
+          // Área de ação fixa no rodapé, acima da barra de navegação do sistema.
+          SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (downloading) ...[
+                    LinearProgressIndicator(value: _progress),
+                    const SizedBox(height: 8),
+                    Center(
+                      child: Text(
+                          '${((_progress ?? 0) * 100).toStringAsFixed(0)}%'),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      onPressed: downloading ? null : _download,
+                      icon: const Icon(Icons.download),
+                      label: Text(
+                          downloading ? 'Baixando...' : 'Baixar na galeria'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ),
