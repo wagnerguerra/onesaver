@@ -3,12 +3,13 @@ import 'resolve_service.dart';
 
 /// Stub do /resolve: devolve dados falsos sem chamar o backend.
 ///
-/// Os links de mídia apontam para um mp4 público de exemplo (Big Buck Bunny),
-/// então o fluxo de download → salvar na galeria funciona de ponta a ponta
-/// mesmo antes do backend estar pronto.
+/// Os links de mídia apontam para um mp4 público de exemplo, então o fluxo de
+/// download → salvar na galeria funciona de ponta a ponta mesmo antes do
+/// backend estar pronto.
 class StubResolveService implements ResolveService {
-  static const _sampleMp4 =
-      'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
+  // Vídeo de teste pequeno (~2.8 MB) e hospedagem estável. (O bucket de samples
+  // do Google passou a retornar 403.)
+  static const _sampleMp4 = 'https://download.samplelib.com/mp4/sample-5s.mp4';
 
   @override
   Future<ResolveResult> resolve(String url) async {
@@ -35,7 +36,7 @@ class StubResolveService implements ResolveService {
           url: _sampleMp4,
           width: 1920,
           height: 1080,
-          filesize: 158008374,
+          filesize: 2848208,
         ),
         MediaItem(
           quality: '720p',
@@ -43,7 +44,7 @@ class StubResolveService implements ResolveService {
           url: _sampleMp4,
           width: 1280,
           height: 720,
-          filesize: 92000000,
+          filesize: 2848208,
         ),
       ],
     );
