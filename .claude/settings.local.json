@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:www.socialcrawl.dev)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:scrapfly.io)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "PowerShell(py *)",
+      "PowerShell(Get-Command *)",
+      "PowerShell(docker version *)",
+      "PowerShell($exe = \"$env:ProgramFiles\\\\Docker\\\\Docker\\\\Docker Desktop.exe\"; if\\(Test-Path $exe\\){ Start-Process $exe; \"Iniciando Docker Desktop...\" } else { \"Docker Desktop.exe nao encontrado em $exe\" })",
+      "PowerShell(docker compose *)",
+      "PowerShell(docker exec backend-api-1 *)",
+      "PowerShell(docker run *)"
+    ]
+  }
+}

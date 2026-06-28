@@ -1,0 +1,22 @@
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      # Cookie único (compat) e diretório do pool, montados como secret abaixo.
+      ONESAVER_COOKIES_FILE: /secrets/cookies.txt
+      ONESAVER_COOKIES_DIR: /secrets/cookies
+    volumes:
+      # Coloque cookies.txt e/ou cookies/*.txt em ./secrets/ (NÃO versionar).
+      # Sem nenhum arquivo, o backend opera em modo anônimo.
+      - ./secrets:/secrets:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health').status==200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped

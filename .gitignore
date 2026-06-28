@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+
+# Flutter / Dart (app/ futuro)
+.dart_tool/
+.packages
+build/
+*.iml
+.idea/
+.gradle/
+local.properties
+
+# Secrets (cookies da conta-robô — NUNCA versionar)
+backend/secrets/*
+!backend/secrets/.gitkeep
+!backend/secrets/cookies/
+backend/secrets/cookies/*
+!backend/secrets/cookies/.gitkeep
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/

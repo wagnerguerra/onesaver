@@ -1,0 +1,13 @@
+# Produção: use junto com o compose base.
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+# Cada worker tem cache/pool próprios em memória (ok para MVP). Para cache
+# compartilhado entre instâncias, migrar TTLCache -> Redis.
+services:
+  api:
+    ports: !reset []          # não expõe direto; ponha um reverse proxy/TLS na frente
+    expose:
+      - "8000"
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
+    environment:
+      ONESAVER_CORS_ORIGINS: ${ONESAVER_CORS_ORIGINS:-*}
+    restart: always
