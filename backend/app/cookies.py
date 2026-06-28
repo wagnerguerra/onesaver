@@ -7,6 +7,8 @@ por um tempo, dando chance aos outros. Sem nenhum cookie, opera em modo anônimo
 
 import glob
 import os
+import shutil
+import tempfile
 import threading
 import time
 
@@ -19,16 +21,34 @@ class CookiePool:
         self._cooldown_until: dict[str, float] = {}
         self._cookies_file = cookies_file
         self._cookies_dir = cookies_dir
+        # Diretório gravável: o yt-dlp reescreve o cookiefile ao fechar, e o
+        # mount de /secrets é read-only. Copiamos para cá e usamos a cópia,
+        # protegendo o arquivo original de reescrita/corrupção.
+        self._work_dir = os.path.join(tempfile.gettempdir(), "onesaver-cookies")
+        os.makedirs(self._work_dir, exist_ok=True)
         self._paths: list[str] = self._discover()
+
+    def _sources(self) -> list[str]:
+        srcs: list[str] = []
+        if self._cookies_file and os.path.isfile(self._cookies_file):
+            srcs.append(self._cookies_file)
+        if self._cookies_dir and os.path.isdir(self._cookies_dir):
+            for p in sorted(glob.glob(os.path.join(self._cookies_dir, "*.txt"))):
+                if os.path.isfile(p) and p not in srcs:
+                    srcs.append(p)
+        return srcs
 
     def _discover(self) -> list[str]:
         paths: list[str] = []
-        if self._cookies_file and os.path.isfile(self._cookies_file):
-            paths.append(self._cookies_file)
-        if self._cookies_dir and os.path.isdir(self._cookies_dir):
-            for p in sorted(glob.glob(os.path.join(self._cookies_dir, "*.txt"))):
-                if os.path.isfile(p) and p not in paths:
-                    paths.append(p)
+        for src in self._sources():
+            dst = os.path.join(self._work_dir, os.path.basename(src))
+            try:
+                shutil.copyfile(src, dst)
+                target = dst
+            except OSError:
+                target = src  # fallback: usa o original
+            if target not in paths:
+                paths.append(target)
         return paths
 
     def reload(self) -> None:

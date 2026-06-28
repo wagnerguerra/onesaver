@@ -78,8 +78,11 @@ def test_all_cooling_returns_none(tmp_path, monkeypatch):
     _patch_clock(monkeypatch)
     cdir = _make_dir(tmp_path, ["a.txt", "b.txt"])
     pool = CookiePool("", cdir, cooldown=100)
-    pool.report_failure(str(__import__("pathlib").Path(cdir) / "a.txt"))
-    pool.report_failure(str(__import__("pathlib").Path(cdir) / "b.txt"))
+    # Falha ambos os cookies (via acquire, já que o pool usa cópias internas).
+    for _ in range(pool.size()):
+        p = pool.acquire()
+        if p:
+            pool.report_failure(p)
     assert pool.available() == 0
     assert pool.acquire() is None
 

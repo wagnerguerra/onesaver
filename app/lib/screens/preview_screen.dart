@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:open_filex/open_filex.dart';
 
 import '../models/media.dart';
 import '../state/providers.dart';
@@ -19,7 +20,7 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
   Future<void> _download() async {
     setState(() => _progress = 0);
     try {
-      await ref.read(downloadServiceProvider).download(
+      final path = await ref.read(downloadServiceProvider).download(
             _selected,
             onProgress: (p) {
               if (mounted) setState(() => _progress = p);
@@ -32,9 +33,16 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
               path: 'galeria/OneSaver',
             ),
           );
+      // Reproduz o arquivo baixado no player do sistema.
+      final opened = await OpenFilex.open(path, type: 'video/mp4');
       if (mounted) {
+        final ok = opened.type == ResultType.done;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Salvo na galeria (álbum OneSaver).')),
+          SnackBar(
+            content: Text(ok
+                ? 'Salvo na galeria. Abrindo o vídeo…'
+                : 'Salvo na galeria. Não abriu: ${opened.message}'),
+          ),
         );
       }
     } catch (e) {
@@ -111,8 +119,9 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
           // Área de ação fixa no rodapé, acima da barra de navegação do sistema.
           SafeArea(
             top: false,
+            minimum: const EdgeInsets.only(bottom: 16),
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
