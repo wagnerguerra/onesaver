@@ -12,7 +12,8 @@
       "PowerShell($exe = \"$env:ProgramFiles\\\\Docker\\\\Docker\\\\Docker Desktop.exe\"; if\\(Test-Path $exe\\){ Start-Process $exe; \"Iniciando Docker Desktop...\" } else { \"Docker Desktop.exe nao encontrado em $exe\" })",
       "PowerShell(docker compose *)",
       "PowerShell(docker exec backend-api-1 *)",
-      "PowerShell(docker run *)"
+      "PowerShell(docker run *)",
+      "PowerShell(winget install *)"
     ]
   }
 }
