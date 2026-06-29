@@ -28,3 +28,6 @@ Thumbs.db
 
 # Local Claude settings (may contain secrets)
 .claude/settings.local.json
+
+# APKs compilados (binários grandes; embutem API key)
+*.apk
