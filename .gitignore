@@ -25,3 +25,6 @@ backend/secrets/cookies/*
 .DS_Store
 Thumbs.db
 .vscode/
+
+# Local Claude settings (may contain secrets)
+.claude/settings.local.json

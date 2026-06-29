@@ -1,0 +1,24 @@
+# Deploy isolado na VPS (stack próprio: `docker compose -p onesaver`).
+# Publica só em 127.0.0.1:8090; o nginx do host faz o TLS/proxy reverso.
+#   docker compose -p onesaver -f docker-compose.vps.yml up -d --build
+services:
+  api:
+    build: .
+    image: onesaver-api:latest
+    ports:
+      - "127.0.0.1:8090:8000"
+    env_file:
+      - .env
+    environment:
+      ONESAVER_COOKIES_FILE: /secrets/cookies.txt
+      ONESAVER_COOKIES_DIR: /secrets/cookies
+    volumes:
+      - ./secrets:/secrets:ro
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health').status==200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    restart: always
