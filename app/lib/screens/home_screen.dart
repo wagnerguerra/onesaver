@@ -210,16 +210,29 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             TextField(
               controller: _controller,
               keyboardType: TextInputType.url,
+              minLines: 3,
+              maxLines: 4,
+              style: Theme.of(context).textTheme.bodyLarge,
+              textAlignVertical: TextAlignVertical.top,
               decoration: InputDecoration(
-                hintText: 'https://www.instagram.com/reel/...',
+                // Sem placeholder: o campo só é preenchido quando há um link
+                // válido na área de transferência (ver _checkClipboard).
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(14),
                 ),
-                prefixIcon: const Icon(Icons.link),
-                suffixIcon: IconButton(
-                  icon: const Icon(Icons.content_paste),
-                  tooltip: 'Colar',
-                  onPressed: _paste,
+                contentPadding:
+                    const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
+                prefixIcon: const Padding(
+                  padding: EdgeInsets.only(bottom: 36),
+                  child: Icon(Icons.link),
+                ),
+                suffixIcon: Padding(
+                  padding: const EdgeInsets.only(bottom: 36),
+                  child: IconButton(
+                    icon: const Icon(Icons.content_paste),
+                    tooltip: 'Colar',
+                    onPressed: _paste,
+                  ),
                 ),
               ),
             ),
