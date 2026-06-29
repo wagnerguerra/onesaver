@@ -4,6 +4,7 @@ import 'package:open_filex/open_filex.dart';
 
 import '../models/media.dart';
 import '../state/providers.dart';
+import 'premium_screen.dart';
 
 class PreviewScreen extends ConsumerStatefulWidget {
   const PreviewScreen({super.key, required this.result});
@@ -18,6 +19,29 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
   double? _progress; // null = ocioso
 
   Future<void> _download() async {
+    // Usuários sem o plano pago assistem a um anúncio recompensado para liberar.
+    if (!ref.read(premiumProvider)) {
+      final unlocked = await ref.read(adsServiceProvider).showRewarded();
+      if (!mounted) return;
+      if (!unlocked) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text(
+              'Assista ao anúncio até o final para liberar o download — '
+              'ou remova os anúncios para baixar direto.',
+            ),
+            action: SnackBarAction(
+              label: 'Remover',
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const PremiumScreen()),
+              ),
+            ),
+          ),
+        );
+        return;
+      }
+    }
+
     setState(() => _progress = 0);
     try {
       final path = await ref.read(downloadServiceProvider).download(
@@ -64,6 +88,7 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
   Widget build(BuildContext context) {
     final r = widget.result;
     final downloading = _progress != null;
+    final premium = ref.watch(premiumProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Pré-visualização')),
@@ -139,11 +164,30 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
                     width: double.infinity,
                     child: FilledButton.icon(
                       onPressed: downloading ? null : _download,
-                      icon: const Icon(Icons.download),
+                      icon: Icon(premium || downloading
+                          ? Icons.download
+                          : Icons.smart_display_outlined),
                       label: Text(
-                          downloading ? 'Baixando...' : 'Baixar na galeria'),
+                        downloading
+                            ? 'Baixando...'
+                            : premium
+                                ? 'Baixar na galeria'
+                                : 'Assistir anúncio e baixar',
+                      ),
                     ),
                   ),
+                  if (!premium && !downloading)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 6),
+                      child: Text(
+                        'Sem anúncios? Toque no troféu na tela inicial.',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color:
+                                  Theme.of(context).colorScheme.onSurfaceVariant,
+                            ),
+                      ),
+                    ),
                 ],
               ),
             ),

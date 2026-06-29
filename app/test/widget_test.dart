@@ -1,30 +1,67 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:onesaver/main.dart';
+import 'package:onesaver/models/media.dart';
+import 'package:onesaver/utils/error_messages.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  group('validateInstagramInput', () {
+    test('vazio pede um link', () {
+      expect(validateInstagramInput('  '), contains('Cole um link'));
+    });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    test('texto sem instagram.com é rejeitado', () {
+      expect(
+        validateInstagramInput('https://youtube.com/watch?v=x'),
+        contains('não parece um link do Instagram'),
+      );
+    });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    test('instagram.com mas sem link de vídeo é rejeitado', () {
+      expect(
+        validateInstagramInput('https://instagram.com/algumperfil'),
+        contains('não um link de vídeo'),
+      );
+    });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    test('reel válido passa (retorna null)', () {
+      expect(
+        validateInstagramInput('https://www.instagram.com/reel/ABC123_x/'),
+        isNull,
+      );
+    });
+
+    test('link com texto extra ao redor passa', () {
+      expect(
+        validateInstagramInput(
+            'olha isso https://www.instagram.com/p/ABC123/ top'),
+        isNull,
+      );
+    });
+  });
+
+  group('friendlyResolveError', () {
+    test('invalid_url vira mensagem amigável', () {
+      final msg = friendlyResolveError(
+        const ResolveException('invalid_url', 'detalhe cru'),
+      );
+      expect(msg, contains('post, reel ou TV'));
+    });
+
+    test('auth_required explica conteúdo privado', () {
+      final msg = friendlyResolveError(
+        const ResolveException('auth_required', 'x'),
+      );
+      expect(msg, contains('privado'));
+    });
+
+    test('código desconhecido cai no message do backend', () {
+      final msg = friendlyResolveError(
+        const ResolveException('weird', 'mensagem específica'),
+      );
+      expect(msg, 'mensagem específica');
+    });
+
+    test('erro não-ResolveException tem fallback genérico', () {
+      expect(friendlyResolveError(Exception('x')), contains('Algo deu errado'));
+    });
   });
 }

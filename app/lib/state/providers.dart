@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../config.dart';
 import '../models/media.dart';
+import '../services/ads_service.dart';
 import '../services/download_service.dart';
+import '../services/purchase_service.dart';
 import '../services/resolve_service.dart';
 import '../services/stub_resolve_service.dart';
 
@@ -31,6 +33,32 @@ final resolveServiceProvider = Provider<ResolveService>((ref) {
 
 final downloadServiceProvider = Provider<DownloadService>((ref) {
   return DownloadService();
+});
+
+// --- Premium / anúncios ---
+
+/// Status premium (remover anúncios). Atualizado pelo [PurchaseService].
+class PremiumNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+
+  void set(bool value) => state = value;
+}
+
+final premiumProvider =
+    NotifierProvider<PremiumNotifier, bool>(PremiumNotifier.new);
+
+final adsServiceProvider = Provider<AdsService>((ref) {
+  final svc = AdsService();
+  ref.onDispose(svc.dispose);
+  return svc;
+});
+
+final purchaseServiceProvider = Provider<PurchaseService>((ref) {
+  final svc =
+      PurchaseService((value) => ref.read(premiumProvider.notifier).set(value));
+  ref.onDispose(svc.dispose);
+  return svc;
 });
 
 /// Estado da resolução de um link na Home.

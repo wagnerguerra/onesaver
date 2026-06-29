@@ -6,11 +6,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
 import '../config.dart';
-import '../models/media.dart';
 import '../state/providers.dart';
 import '../theme.dart';
+import '../utils/error_messages.dart';
 import '../utils/instagram_url.dart';
 import 'downloads_screen.dart';
+import 'premium_screen.dart';
 import 'preview_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -107,7 +108,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
   Future<void> _resolve() async {
     final url = _controller.text.trim();
-    if (url.isEmpty) return;
+    // Valida localmente antes de ir à rede — feedback imediato.
+    final invalid = validateInstagramInput(url);
+    if (invalid != null) {
+      _showMessage(invalid);
+      return;
+    }
     FocusScope.of(context).unfocus();
     await ref.read(resolveControllerProvider.notifier).resolve(url);
 
@@ -126,17 +132,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     );
   }
 
-  void _showError(Object err) {
-    final msg =
-        err is ResolveException ? err.message : 'Erro ao resolver o link.';
+  void _showError(Object err) => _showMessage(friendlyResolveError(err));
+
+  void _showMessage(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), backgroundColor: Colors.red.shade700),
+      SnackBar(
+        content: Text(msg),
+        backgroundColor: Colors.red.shade700,
+        duration: const Duration(seconds: 5),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final isLoading = ref.watch(resolveControllerProvider).isLoading;
+    final premium = ref.watch(premiumProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -148,6 +159,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               ?.copyWith(fontWeight: FontWeight.w800),
         ),
         actions: [
+          if (!premium)
+            IconButton(
+              icon: const Icon(Icons.workspace_premium_outlined),
+              tooltip: 'Remover anúncios',
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const PremiumScreen()),
+              ),
+            ),
           IconButton(
             icon: const Icon(Icons.download_done_outlined),
             tooltip: 'Downloads',
