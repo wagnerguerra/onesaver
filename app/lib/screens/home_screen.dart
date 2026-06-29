@@ -210,6 +210,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             TextField(
               controller: _controller,
               keyboardType: TextInputType.url,
+              // Shortcode do Instagram é case-sensitive: o teclado NÃO pode
+              // autocorrigir/capitalizar/sugerir, senão a URL vira inválida.
+              autocorrect: false,
+              enableSuggestions: false,
+              textCapitalization: TextCapitalization.none,
               minLines: 3,
               maxLines: 4,
               style: Theme.of(context).textTheme.bodyLarge,
