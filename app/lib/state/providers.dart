@@ -58,11 +58,15 @@ class DownloadEntry {
   const DownloadEntry({
     required this.title,
     required this.quality,
-    required this.path,
+    required this.filePath,
+    this.thumbnail,
   });
   final String title;
   final String quality;
-  final String path;
+
+  /// Caminho local do arquivo baixado (para reabrir/reproduzir).
+  final String filePath;
+  final String? thumbnail;
 }
 
 class DownloadsNotifier extends Notifier<List<DownloadEntry>> {

@@ -8,6 +8,7 @@ import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import '../config.dart';
 import '../models/media.dart';
 import '../state/providers.dart';
+import '../theme.dart';
 import '../utils/instagram_url.dart';
 import 'downloads_screen.dart';
 import 'preview_screen.dart';
@@ -139,7 +140,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('OneSaver'),
+        title: GradientText(
+          'OneSaver',
+          style: Theme.of(context)
+              .textTheme
+              .titleLarge
+              ?.copyWith(fontWeight: FontWeight.w800),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.download_done_outlined),
@@ -150,24 +157,45 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
+      body: LayoutBuilder(
+        builder: (context, constraints) => SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight - 40),
+            child: IntrinsicHeight(
+              child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            const SizedBox(height: 16),
+            const Center(child: BrandLogo(size: 84)),
+            const SizedBox(height: 16),
+            Center(
+              child: Text(
+                'Salve vídeos do Instagram',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w600),
+              ),
+            ),
             const SizedBox(height: 8),
             Text(
               'Compartilhe um reel pelo Instagram (Compartilhar → OneSaver) '
               'ou cole o link abaixo.',
-              style: Theme.of(context).textTheme.bodyLarge,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             TextField(
               controller: _controller,
               keyboardType: TextInputType.url,
               decoration: InputDecoration(
                 hintText: 'https://www.instagram.com/reel/...',
-                border: const OutlineInputBorder(),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
                 prefixIcon: const Icon(Icons.link),
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.content_paste),
@@ -177,16 +205,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               ),
             ),
             const SizedBox(height: 16),
-            FilledButton.icon(
+            GradientButton(
               onPressed: isLoading ? null : _resolve,
-              icon: isLoading
+              child: isLoading
                   ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
                     )
-                  : const Icon(Icons.search),
-              label: Text(isLoading ? 'Buscando...' : 'Buscar vídeo'),
+                  : const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.search),
+                        SizedBox(width: 8),
+                        Text('Buscar vídeo'),
+                      ],
+                    ),
             ),
             const Spacer(),
             if (AppConfig.useStub)
@@ -210,6 +247,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 ),
               ),
           ],
+              ),
+            ),
+          ),
         ),
       ),
     );

@@ -30,7 +30,8 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
             DownloadEntry(
               title: widget.result.title ?? widget.result.shortcode,
               quality: _selected.quality,
-              path: 'galeria/OneSaver',
+              filePath: path,
+              thumbnail: widget.result.thumbnail,
             ),
           );
       // Reproduz o arquivo baixado no player do sistema.
