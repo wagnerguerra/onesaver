@@ -128,6 +128,7 @@ def _cookies_dir(tmp_path, names):
 def test_resolve_rotates_to_healthy_cookie(tmp_path, monkeypatch):
     cdir = _cookies_dir(tmp_path, ["a.txt", "b.txt"])
     monkeypatch.setattr(ig, "pool", CookiePool("", cdir, cooldown=100))
+    monkeypatch.setattr(ig.time, "sleep", lambda *a, **k: None)  # sem backoff real
 
     def handler(opts, url):
         cf = opts.get("cookiefile") or ""
@@ -152,6 +153,7 @@ def test_resolve_rotates_to_healthy_cookie(tmp_path, monkeypatch):
 
 def test_resolve_anonymous_failure_raises_auth_required(tmp_path, monkeypatch):
     monkeypatch.setattr(ig, "pool", CookiePool("", "", cooldown=100))
+    monkeypatch.setattr(ig.time, "sleep", lambda *a, **k: None)  # sem backoff real
 
     def handler(opts, url):
         raise DownloadError("empty media response")

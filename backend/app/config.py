@@ -20,6 +20,12 @@ class Settings(BaseSettings):
     # Tempo (s) que um cookie fica "de molho" após falhar (auth/rate-limit).
     cookie_cooldown: int = 600
 
+    # --- Retry (rate-limit transitório do IP de datacenter) ---
+    # Tentativas máximas por requisição, com backoff exponencial entre elas.
+    resolve_retries: int = 3
+    # Base do backoff em segundos (1.5 → espera 1.5, 3, 6…, com teto de 8s).
+    resolve_backoff: float = 1.5
+
     # --- Cache ---
     # TTL do cache de resolução, em segundos (padrão 6h).
     cache_ttl: int = 6 * 60 * 60

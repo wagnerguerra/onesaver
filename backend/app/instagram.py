@@ -7,6 +7,7 @@ basta atualizar o yt-dlp (e, se preciso, este módulo) sem tocar no app cliente.
 import os
 import re
 import threading
+import time
 
 from yt_dlp import YoutubeDL
 from yt_dlp.utils import DownloadError
@@ -171,18 +172,24 @@ def _build_result(kind: str, shortcode: str, info: dict) -> ResolveResponse:
     )
 
 
+# Erros transitórios: vale repetir com backoff (rate-limit do IP é intermitente).
+_RETRYABLE = ("auth_required", "rate_limited", "extract_failed")
+
+
 def resolve(url: str) -> ResolveResponse:
     """Resolve uma URL pública em metadados + URLs de download.
 
-    Tenta com cookies do pool, rotacionando e colocando em cooldown os que
-    falham por auth/rate-limit. Lança ResolveError ao esgotar as tentativas.
+    Tenta com cookies do pool (rotacionando e colocando em cooldown os que
+    falham por auth/rate-limit) e, em falhas transitórias do IP de datacenter,
+    repete com backoff exponencial. Lança ResolveError ao esgotar as tentativas.
     """
     kind, shortcode = parse_url(url)
 
-    attempts = max(1, pool.size())  # ao menos 1 tentativa (anônima se sem cookies)
+    # Ao menos 1 tentativa; cobre tanto a rotação de cookies quanto os retries.
+    max_attempts = max(pool.size(), settings.resolve_retries, 1)
     last_error: ResolveError | None = None
 
-    for _ in range(attempts):
+    for attempt in range(max_attempts):
         cookie = pool.acquire()  # None = sem cookie saudável → tenta anônimo
         proxy = _next_proxy()
         try:
@@ -190,10 +197,13 @@ def resolve(url: str) -> ResolveResponse:
                 info = ydl.extract_info(url, download=False)
         except DownloadError as exc:
             err = _classify(exc)
-            # Falha de sessão: penaliza o cookie e tenta o próximo.
+            # Falha de sessão: penaliza o cookie para sair da rotação por um tempo.
             if cookie and err.code in ("auth_required", "rate_limited"):
                 pool.report_failure(cookie)
-                last_error = err
+            last_error = err
+            # Backoff e nova tentativa quando o erro é transitório.
+            if err.code in _RETRYABLE and attempt < max_attempts - 1:
+                time.sleep(min(settings.resolve_backoff * (2**attempt), 8.0))
                 continue
             raise err from exc
 
